@@ -1,0 +1,11 @@
+[
+{"name":"tiamat_saddr_d46d2dad7$word","start":159,"end":263,"firstLine":6,"lastLine":10},
+{"name":"tiamat_setAllowance_d184042cc","start":728,"end":1243,"firstLine":27,"lastLine":36},
+{"name":"tiamat_getAllowance_d309747ca","start":1245,"end":2063,"firstLine":38,"lastLine":59},
+{"name":"StorageType_sload_da53fba28$word","start":2830,"end":2972,"firstLine":88,"lastLine":94},
+{"name":"StorageType_store_d7a3cf50a$word","start":2977,"end":3094,"firstLine":95,"lastLine":99},
+{"name":"RVA_acc_d312ff008_pee35d774085c521a$TIP_d184a7d80Lstorage_d0b2a0fe4Ldict_d3ba69b59Laddress_d04bd3467_wordJJ_address_d04bd3467_wordJ_word","start":3212,"end":3373,"firstLine":103,"lastLine":106},
+{"name":"Assign_assign_dd7dd8b53_pee35d774085c521a$storage_d0b2a0fe4LwordJ_word","start":3511,"end":3604,"firstLine":115,"lastLine":117},
+{"name":"tiamat_Tiamat__start_d4f8a6f23","start":3617,"end":3623,"firstLine":120,"lastLine":120},
+{"name":"tiamat_Tiamat_main_d3d202f13","start":3628,"end":3882,"firstLine":121,"lastLine":126}
+]

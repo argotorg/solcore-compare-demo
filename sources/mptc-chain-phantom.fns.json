@@ -1,0 +1,8 @@
+[
+{"name":"Encoder_encode_d0301761a$Foo_d7a13741c_word","start":613,"end":718,"firstLine":21,"lastLine":23},
+{"name":"Sink_sink_d8f20b6ca$word_word","start":750,"end":808,"firstLine":27,"lastLine":29},
+{"name":"mptc_chain_phantom_f_d4b6ac89e_pbf7f096104294ede$Foo_d7a13741c_word","start":1043,"end":1193,"firstLine":36,"lastLine":40},
+{"name":"mptc_chain_phantom_C__start_d6fd56124","start":1212,"end":1228,"firstLine":43,"lastLine":43},
+{"name":"mptc_chain_phantom_C_init__dc1a65a55","start":1212,"end":1228,"firstLine":43,"lastLine":43},
+{"name":"mptc_chain_phantom_C_main_dac8b3ae9","start":1233,"end":1316,"firstLine":44,"lastLine":47}
+]

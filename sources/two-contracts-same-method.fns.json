@@ -1,0 +1,8 @@
+[
+{"name":"two_contracts_same_method_A__start_d852e3695","start":280,"end":281,"firstLine":8,"lastLine":8},
+{"name":"two_contracts_same_method_A_main_da5fff4fc","start":280,"end":281,"firstLine":8,"lastLine":8},
+{"name":"two_contracts_same_method_A_f_da40e1abb","start":288,"end":315,"firstLine":9,"lastLine":10},
+{"name":"two_contracts_same_method_B__start_db9cdbb02","start":328,"end":329,"firstLine":13,"lastLine":13},
+{"name":"two_contracts_same_method_B_main_d6f31074f","start":328,"end":329,"firstLine":13,"lastLine":13},
+{"name":"two_contracts_same_method_B_f_d5813b75d","start":336,"end":363,"firstLine":14,"lastLine":15}
+]

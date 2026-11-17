@@ -1,0 +1,8 @@
+[
+{"name":"monomorphic_require_myrevert_d2cc567a8$unit","start":208,"end":335,"firstLine":6,"lastLine":11},
+{"name":"monomorphic_require_require_d04a2f84a","start":336,"end":466,"firstLine":12,"lastLine":17},
+{"name":"monomorphic_require_callvalue_d37bf9446","start":468,"end":603,"firstLine":19,"lastLine":25},
+{"name":"monomorphic_require_Deposit__start_da6be3f24","start":614,"end":621,"firstLine":27,"lastLine":27},
+{"name":"monomorphic_require_Deposit_deposit_ded4ba421","start":624,"end":720,"firstLine":28,"lastLine":31},
+{"name":"monomorphic_require_Deposit_main_d3ba65046","start":722,"end":774,"firstLine":33,"lastLine":35}
+]

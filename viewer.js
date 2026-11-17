@@ -296,6 +296,7 @@ function show(entry) {
   }
   $('#summary').textContent = summary;
   updateFacetNote(entry);
+  markFunction(entry);
   if (hashView.active) {
     if (left && right) hashView.showPair(left, right, $('#lname').textContent, $('#rname').textContent);
     else hashView.show(left || right, left ? $('#lname').textContent : $('#rname').textContent);
@@ -328,6 +329,7 @@ function fillEntries(selection) {
   if (entries.length === 0) {
     $('#summary').textContent = 'No function pair differs in this program.';
     updateFacetNote(null);
+    markFunction(undefined);
     draw('left', null); draw('right', null);
     if (hashView.active) hashView.show(null);
     return;
@@ -494,28 +496,81 @@ async function loadProgram(name, selection) {
 
 // The Solcore source of a stored program of the two compilers, as given to both (sources/NAME.sol), in the panel below the graphs. The edited
 // examples are Hull only and the reader's own files have no source, so the panel is left out for them.
+//
+// The lines of the function shown are marked (class `on`). Where the functions are written comes from sources/NAME.fns.json, made from
+// the source positions in the Hull export of the Rust compiler: one entry for each function written in the program's own file, with the
+// name the Rust compiler prints and its first and last line. Both panes show the same source, so the entry of the right-hand function is
+// used (the entry of the left-hand function for one that has no right-hand counterpart). A function that comes from a library, one
+// that the exporter named differently from the stored graph, and a program the exporter did not accept have no entry: nothing is marked.
 const sourceCache = new Map();
+const fnsCache = new Map();
+// The panel as built last: its program (null when it shows none), a row for each line, the entries by name, the first line marked (0 for
+// none) and the line the panel was last scrolled to.
+const source = { name: null, rows: [], fns: new Map(), first: 0, scrolled: 0 };
+
 async function syncSource() {
   const panel = $('#g-source');
   const name = !state.live && state.kind === 'compilers' ? state.stored : null;
   panel.dataset.name = name || '';
   panel.hidden = name === null;
+  source.name = null;
   if (name === null) return;
   if (!sourceCache.has(name)) {
     const response = await fetch(`sources/${encodeURIComponent(name)}.sol`);
     sourceCache.set(name, response.ok ? await response.text() : null);
   }
+  if (!fnsCache.has(name)) {
+    let list = [];
+    try {
+      const response = await fetch(`sources/${encodeURIComponent(name)}.fns.json`);
+      if (response.ok) list = await response.json();
+    } catch { /* no line ranges for this program: no function is marked */ }
+    fnsCache.set(name, new Map(list.map((f) => [f.name, f])));
+  }
   if (panel.dataset.name !== name) return;   // another program was chosen while this one was loading
   const text = sourceCache.get(name);
   if (text === null) { panel.hidden = true; return; }
   $('#source-name').textContent = `${name}.sol`;
-  $('#source-text').replaceChildren(...text.replace(/\n$/, '').split('\n').map((line, i) => {
+  const rows = text.replace(/\n$/, '').split('\n').map((line, i) => {
     const row = document.createElement('span');
     row.className = 'ln';
     row.dataset.n = String(i + 1);
-    row.textContent = `${line}\n`;
+    row.textContent = line;
     return row;
-  }));
+  });
+  $('#source-text').replaceChildren(...rows);
+  $('#source-text').scrollTop = 0;
+  Object.assign(source, { name, rows, fns: fnsCache.get(name), first: 0, scrolled: 0 });
+  markFunction(state.entries[Number($('#pair').value)]);
+}
+
+// Marks the lines of the function of `entry` (an entry of the Function list; none for no function) in the panel, says which they are in
+// the panel's summary and, when the panel is open and another function than before is marked, scrolls the source to its first line.
+function markFunction(entry) {
+  if (source.name === null || source.name !== state.stored) return;   // the panel is being rebuilt for another program, or has none
+  let found = null;
+  if (entry) {
+    const program = state.program;
+    const graph = entry.kind === 'pair' ? program.pairs[entry.i].right : entry.kind === 'right' ? program.right_only[entry.i] : program.left_only[entry.i];
+    found = source.fns.get(graph.name) || null;
+  }
+  const [first, last] = found ? [found.firstLine, found.lastLine] : [0, 0];
+  source.rows.forEach((row, i) => row.classList.toggle('on', i + 1 >= first && i + 1 <= last));
+  $('#source-fn').textContent = found ? ` (selected function: ${first === last ? `line ${first}` : `lines ${first} to ${last}`})` : '';
+  source.first = first;
+  if (first !== source.scrolled) {
+    source.scrolled = first;
+    scrollToFunction();
+  }
+}
+
+// Scrolls the source so that the first line of the marked function is in view, one line below the top (the line above it, often a comment
+// or a blank line, stays visible). Nothing happens for a closed panel, which has no layout; opening it calls this again.
+function scrollToFunction() {
+  const row = source.rows[source.first - 1];
+  if (!row || !$('#g-source').open) return;
+  const pre = $('#source-text');
+  pre.scrollTop += row.getBoundingClientRect().top - pre.getBoundingClientRect().top - row.getBoundingClientRect().height;
 }
 
 // ---------------------------------------------------------------------------------------------------------
@@ -648,7 +703,7 @@ async function main() {
       writeAddress('replace');
     });
   }
-  $('#g-source').addEventListener('toggle', () => writeAddress('replace'));
+  $('#g-source').addEventListener('toggle', () => { scrollToFunction(); writeAddress('replace'); });
   $('#onlychanged').addEventListener('change', () => { fillEntries(currentSelection()); writeAddress('replace'); });
   // The counts and the "only pairs that differ" list depend on the switch; nothing is compared again.
   $('#bindings').addEventListener('change', () => { fillEntries(currentSelection()); writeAddress('replace'); });
