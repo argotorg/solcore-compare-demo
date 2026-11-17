@@ -1,0 +1,9 @@
+[
+{"name":"struct_abi_StructAbi_main_dc25d83df","start":692,"end":701,"firstLine":22,"lastLine":22},
+{"name":"struct_abi_StructAbi__start_d3637a987","start":706,"end":722,"firstLine":23,"lastLine":23},
+{"name":"struct_abi_StructAbi_init__d8804ee59","start":706,"end":722,"firstLine":23,"lastLine":23},
+{"name":"struct_abi_StructAbi_enc_d8ab3dfd2","start":805,"end":916,"firstLine":26,"lastLine":28},
+{"name":"struct_abi_StructAbi_roundtrip_d4c608d82","start":1068,"end":1140,"firstLine":32,"lastLine":34},
+{"name":"struct_abi_StructAbi_firstField_da4e67347","start":1191,"end":1268,"firstLine":37,"lastLine":39},
+{"name":"struct_get_0_plain_d618d187a$Point_d618d187a","start":1260,"end":1263,"firstLine":38,"lastLine":38}
+]

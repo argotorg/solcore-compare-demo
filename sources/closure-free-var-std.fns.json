@@ -1,0 +1,6 @@
+[
+{"name":"closure_free_var_std_Bug__start_d79c8f13a","start":131,"end":134,"firstLine":6,"lastLine":6},
+{"name":"closure_free_var_std_Bug_main_dc341837a","start":141,"end":218,"firstLine":7,"lastLine":9},
+{"name":"closure_free_var_std_Bug_makeClosure_d052efe39","start":224,"end":409,"firstLine":11,"lastLine":16},
+{"name":"__lambda$ct0","start":295,"end":381,"firstLine":12,"lastLine":14}
+]
