@@ -324,7 +324,7 @@ async function __wbg_init(module_or_path) {
     }
 
     if (module_or_path === undefined) {
-        module_or_path = new URL('viewer_bg.wasm?v=c256a0ced7', import.meta.url);
+        module_or_path = new URL('viewer_bg.wasm?v=fa541e572e', import.meta.url);
     }
     const imports = __wbg_get_imports();
 

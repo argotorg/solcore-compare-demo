@@ -1,4 +1,4 @@
-import init, { render_graph, render_pair, slot_layout, slot_union_layout } from './pkg/viewer.js?v=7edd9d207e';
+import init, { render_graph, render_pair, slot_layout, slot_union_layout } from './pkg/viewer.js?v=e4c3ea8f71';
 import { initHashView, setPaneName } from './hashgraph.js?v=9159ac74de';
 import * as hashPair from './hashgraph-pair.js?v=5127849db9';
 import { withBindings } from './bindings.js?v=3eafae25c0';
