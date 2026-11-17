@@ -1,0 +1,72 @@
+/* The hash graph view (hashgraph.js). The page's own variables (--bg, --fg, --muted, --line, --edge,
+   --ref and the node fills) are reused; --hash0 to --hash7 are the outline colours of equal hashes. */
+:root {
+  /* the first eight slots of a validated categorical palette; the dark steps are chosen for the dark surface */
+  --hash0: #2a78d6; --hash1: #eb6834; --hash2: #1baf7a; --hash3: #eda100;
+  --hash4: #e87ba4; --hash5: #008300; --hash6: #6250d6; --hash7: #e34948;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --hash0: #3987e5; --hash1: #d95926; --hash2: #199e70; --hash3: #c98500;
+    --hash4: #d55181; --hash5: #008300; --hash6: #9085e9; --hash7: #e66767;
+  }
+}
+:root[data-theme="dark"] {
+  --hash0: #3987e5; --hash1: #d95926; --hash2: #199e70; --hash3: #c98500;
+  --hash4: #d55181; --hash5: #008300; --hash6: #9085e9; --hash7: #e66767;
+}
+
+/* Controls of the hash view are shown only in that view; the layered view's own controls are hidden in it. */
+.hg-only { display: none; }
+body.hashmode #hg-bar { display: flex; }
+body.hashmode #hg-info, body.hashmode #hg-legend { display: block; }
+body.hashmode .layered-only { display: none !important; }
+body.hashmode main .pane:last-child { display: none; }
+body.hashmode #summary:not(.error) { display: none; }
+
+#hg-bar { flex-wrap: wrap; gap: 4px 16px; align-items: center; padding: 4px 16px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+#hg-bar label { display: flex; gap: 6px; align-items: center; }
+#hg-bar input[type=range] { width: 140px; }
+#hg-bar output { min-width: 3.5ch; color: var(--fg); font-variant-numeric: tabular-nums; }
+#hg-hint { font-size: 12px; }
+#hg-info { padding: 4px 16px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 12px; min-height: 26px; }
+#hg-hover { display: block; color: var(--fg); min-height: 1.4em; }
+#hg-legend { padding: 4px 16px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+#hg-legend .sw { display: inline-block; width: 14px; height: 10px; border-radius: 2px; margin-right: 3px; vertical-align: -1px; border: 3px solid; background: var(--code); }
+
+/* the drawing */
+.hg .plate { fill: var(--fg); fill-opacity: .045; stroke: var(--line); stroke-width: 1; }
+.hg .plate-label { font: 11px ui-monospace, monospace; fill: var(--muted); text-anchor: end; pointer-events: none; }
+.hg .e.hr { stroke: var(--ref); opacity: .6; }
+.hg.hc .n.eq rect.box { stroke: var(--hc); stroke-width: 3; }
+body.hashmode .n rect.halo { fill: none; stroke: var(--fg); stroke-width: 2; display: none; pointer-events: none; }
+body.hashmode .n.hh rect.halo { display: inline; }
+
+/* The panel "What this hash is made of" (hashgraph.js, preview.js): after the graphs, in the hash view only, a hint until a
+   node is pinned. It is one block that does not shrink and scrolls inside its own box, so it never pushes the graphs off
+   the screen. */
+body.hashmode #hg-record-hint:not([hidden]), body.hashmode #hg-record:not([hidden]) { display: block; }
+#hg-record-hint { flex: none; margin: 0; padding: 4px 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+#hg-record { flex: none; max-height: 28vh; overflow: auto; padding: 4px 16px; border-top: 1px solid var(--line); font-size: 13px; }
+#hg-record summary { color: var(--muted); }
+#hg-record p, #hg-record h4 { margin: 4px 0; }
+#hg-record pre { margin: 4px 0; overflow-x: auto; font: 12px ui-monospace, monospace; }
+#hg-record .hg-cols { display: flex; flex-wrap: wrap; gap: 4px 24px; }
+#hg-record .hg-cols > div { flex: 1 1 18rem; min-width: 0; }
+
+/* The comparison (hashgraph-pair.js): two panes, the legend of the statuses, the switches that apply to it. */
+#hg-bar label.hg-pair-only, #hg-legend .hg-pair-only { display: none; }
+body.hashpair #hg-bar label.hg-pair-only { display: flex; }
+body.hashpair #hg-legend .hg-pair-only { display: inline; }
+body.hashpair #hg-legend .hg-single-only { display: none; }
+body.hashmode.hashpair main .pane:last-child { display: flex; }
+body.hashmode.hashpair #legend.layered-only { display: flex !important; }
+body.hashmode.hashpair label.pairable { display: flex !important; }
+#hg-legend i.gh { display: inline-block; width: 14px; height: 10px; border-radius: 2px; margin-right: 3px; vertical-align: -1px; border: 1.5px dotted var(--muted); }
+/* the changed-paths switch fades what is equal on both sides; ghosts and dotted edges mark the other version */
+.hp .n.fd, .hp .e.fd { opacity: .18; }
+.hp .e.g { stroke-dasharray: 2 3; opacity: .7; }
+/* the stripe of "colour equal hashes" sits on the lower edge of a box and keeps the status outline intact */
+.hp .n .stripe { display: none; fill: var(--hc); stroke: none; pointer-events: none; }
+.hp.hs .n.eq .stripe { display: inline; }
+.hp .ghost { pointer-events: all; }

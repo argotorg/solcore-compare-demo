@@ -1,0 +1,129 @@
+/* Layout fixes and grouping for index.html (see ui.js). Colours, fonts and controls are the page's own. */
+
+/* Cause of the overlap and the vanished graphs at phone width: the page is a column of fixed height, and
+   #summary has `min-height: 28px` (#hg-info `26px`). An explicit min-height switches off the automatic
+   minimum size of a flex item, so when the bars did not fit, the summary shrank to 28 px, its text was drawn
+   over the legend, and <main> shrank to nothing. The bars never shrink; <main> takes the rest, with a floor,
+   and the page scrolls when even that does not fit. (#side and #graphs, the two wrappers of index.html, are
+   `display: contents` below 1000 px, see "sidebar" below: their children are laid out as children of <body>.) */
+body > *, #side > *, #graphs > * { flex: none; }
+#main { flex: 1 1 0; min-height: 200px; }
+#summary, #legend, #hg-info { overflow-wrap: anywhere; }
+#legend > span:last-child { flex: 1 1 100%; }
+/* The title row of a pane: the label and the name of the function, on one line; a name that does not fit is cut with an ellipsis (the
+   row's tooltip, set by the page, has the full name and the developer's figures). */
+.pane h2 { flex-wrap: nowrap; gap: 0 12px; min-width: 0; }
+.pane h2 b, .pane h2 span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pane h2 b { max-width: 60%; }
+
+/* Cause of the sideways scroll: a select is as wide as its longest option, up to 36ch, and a flex item
+   does not shrink below that. */
+select { max-width: min(36ch, 100%); min-width: 0; }
+header label { min-width: 0; max-width: 100%; }
+header select { flex: 0 1 34ch; width: 34ch; }   /* a fixed width: growing to the longest option left a wide gap between the two lists */
+
+/* The rows below the header: the compare switches, then the groups that hide the rest. */
+.bar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; padding: 4px 16px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+.bar label { display: flex; gap: 6px; align-items: center; }
+#groups, #hg-bar { align-items: flex-start; }   /* an open group grows downwards; its neighbours stay put */
+summary { cursor: pointer; }
+.group { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; max-width: 34rem; padding: 4px 0 8px 18px; }
+.group.row { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 4px 16px; max-width: none; }
+.group p { margin: 0 0 4px; }
+#own-bar.group { align-items: flex-start; flex-wrap: nowrap; padding: 4px 0 8px 18px; border-bottom: 0; }   /* the page's #own-bar rule is for a bar */
+body:not(.hashmode) #g-how { display: none; }
+
+/* A finger needs more room than a pointer. */
+@media (pointer: coarse) {
+  summary { padding: 8px 0; }
+  button, select, label { min-height: 36px; }
+}
+
+/* Narrow screens: the graphs come right after the switches; what only reads or rarely changes goes below them. */
+@media (max-width: 640px) {
+  #groups, #summary, #legend, #hg-info, #g-how { order: 1; }
+}
+
+/* sidebar (wide screens) */
+/* The page is the header and two parts of its own. <aside id="side"> holds the controls (#compare, the hash view's #hg-bar, #groups);
+   <div id="graphs"> holds what reads (#hg-info, #g-how, #summary, #legend), <main> and the panel of a pinned node (#hg-record). Below
+   1000 px both are `display: contents`: as far as layout goes their children are children of <body>, in the order of the page,
+   and the rules above apply as before. From 1000 px the body is a grid of two columns, the header across both: the controls stand in a
+   column of 250 px from just under the header to the bottom of the window (it scrolls by itself when the window is too low), and the
+   graphs column takes the rest, with the lines that read above the graphs. */
+#side, #graphs { display: contents; }
+@media (min-width: 1000px) {
+  body {
+    display: grid;
+    grid-template-columns: 250px minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr);   /* the error line (empty: no height), the header, the rest */
+  }
+  /* A grid item's automatic minimum width is its content width; zero lets a wide SVG or a long line shrink to its area. */
+  body > * { min-width: 0; }
+  body > .error { grid-column: 1 / -1; grid-row: 1; }
+  body > header { grid-column: 1 / -1; grid-row: 2; }
+  #side { display: flex; flex-direction: column; grid-column: 1; grid-row: 3; min-height: 0; overflow-y: auto; border-right: 1px solid var(--line); }
+  #graphs { display: flex; flex-direction: column; grid-column: 2; grid-row: 3; min-height: 0; overflow-y: auto; }   /* <main> has a floor (above): a very low window scrolls this column */
+
+  /* The bars become sections of one column: a list each and a plain line between sections. The hash view's bar stands between
+     the Compare row and the groups (it comes after the groups in the page, which is the order of the narrow layout); it is hidden in the other view. */
+  #side > #compare, #side > #hg-bar, #side > #groups {
+    flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 4px;
+    padding: 8px 12px; border-bottom: 0;
+  }
+  #side > #hg-bar, #side > #groups { border-top: 1px solid var(--line); }
+  #side > #hg-bar { order: 1; }
+  #side > #groups { order: 2; }
+  #compare > span:first-child, #hg-bar summary, #groups summary { font-weight: 600; }
+
+  /* A closed #g-how has no line below it; the legend inside it has one only when open. */
+  #graphs > #g-how { border-bottom: 1px solid var(--line); }
+  #g-how > #hg-legend { border-bottom: 0; }
+
+  /* Controls fill the sidebar; the file chooser and the selects of the last group stack under their labels. */
+  #groups select { width: 100%; max-width: none; }
+  #own-bar.group { align-items: stretch; }
+  #own-bar button { align-self: flex-start; }
+  #own-bar label:has(> input[type=file]), #own-bar label:has(> select) { flex-direction: column; align-items: stretch; gap: 2px; }
+  #own-bar input[type=file] { width: 100%; max-width: none; min-width: 0; }
+
+  /* The camera group: switches in a column; a slider reads "name value" and has the full width below. */
+  #hg-bar .group.row { flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 8px; }
+  #hg-bar .group.row button { align-self: flex-start; }
+  #hg-bar label:has(> input[type=range]) { flex-wrap: wrap; gap: 2px 6px; }
+  #hg-bar input[type=range] { order: 1; flex: 1 1 100%; width: 100%; min-width: 0; margin: 0; }
+}
+/* end sidebar */
+
+/* links: the browser's default blue is hard to read on the dark background; same colours as how-it-works.html */
+:root { --link: #3b6fd8; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --link: #7ba2f0; } }
+a, a:visited { color: var(--link); }
+
+/* native controls, scrollbars and default link colours follow the theme: without this the selects, buttons, file inputs and the scrollbar stay light on the dark page */
+:root { color-scheme: light dark; }
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
+
+/* The choice of use (#use, the two radio buttons at the start of the header): on a row of its own above Program below 768 px (the header
+   wraps there, as it always did). From 768 px the header is one row that does not wrap: the two radio buttons one above the other
+   (side by side they are about 530 px wide and leave no room for the lists), then Program, Function, View and Fit. The lists are 34ch
+   wide when there is room (rule above) and shrink, as their labels do, when there is not; the radio buttons and Fit keep their size. */
+#use { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+@media (max-width: 1299px) { #use { flex: 1 1 100%; } }
+@media (min-width: 1300px) {
+  header { flex-wrap: nowrap; }
+  #use { flex: none; flex-direction: column; flex-wrap: nowrap; gap: 0; }
+  header label { white-space: nowrap; }
+  #fit { flex: none; }
+}
+
+/* The link to the explanation, at the bottom of the controls (index.html): its own line in the controls column from 1000 px (at the bottom
+   of the column, whatever the height of the window), after the groups below that; on a phone it comes after the groups, under the graphs. */
+#explainer-note { margin: 0; padding: 4px 16px; font-size: 13px; }
+@media (max-width: 999px) { #explainer-note { order: 1; } }
+@media (min-width: 1000px) { #explainer-note { order: 3; margin-top: auto; padding: 8px 12px; } }
+
+/* pane title rows: the label never shrinks; the long function name takes the rest and is cut with an ellipsis */
+.pane h2 b { flex: 0 0 auto; max-width: none; }
+.pane h2 span { flex: 1 1 0; text-align: right; }

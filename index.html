@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hull comparison</title>
+<style>
+  :root {
+    --bg: #ffffff; --fg: #1c1c1c; --muted: #5f6368; --line: #d4d4d4;
+    --edge: #8a8a8a; --ref: #c62828;
+    --own: #d81b60; --below: #f9a825; --only: #00897b; --moved: #5e35b1;
+    --code: #9cc3f0; --ty: #d2d2d2; --yul: #f4b36a; --fn: #7fa3e0; --ink: #111111;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14161a; --fg: #e8e8e8; --muted: #9aa0a6; --line: #333840;
+      --edge: #70757c; --ref: #ef6a6a;
+      --own: #ff5c93; --below: #ffca4a; --only: #35c9b3; --moved: #9d7cf0;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg);
+    font: 14px/1.4 system-ui, sans-serif; }
+  body { display: flex; flex-direction: column; }
+  header { padding: 8px 16px; border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+  header label { display: flex; gap: 6px; align-items: center; color: var(--muted); }
+  .facets { display: flex; gap: 4px 12px; flex-wrap: wrap; align-items: center; color: var(--muted); }
+  select { font: inherit; max-width: 36ch; background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 4px; padding: 2px 4px; }
+  button { font: inherit; background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 4px; padding: 2px 10px; cursor: pointer; }
+  #own-bar { padding: 4px 16px; border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center; color: var(--muted); font-size: 13px; }
+  #own-bar label { display: flex; gap: 6px; align-items: center; }
+  #own-bar input[type=file] { font: inherit; max-width: 28ch; }
+  button:disabled { opacity: .5; cursor: default; }
+  #summary { padding: 4px 16px; color: var(--muted); border-bottom: 1px solid var(--line); min-height: 28px; }
+  #legend { display: flex; flex-wrap: wrap; gap: 4px 16px; padding: 4px 16px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+  #legend i { display: inline-block; width: 14px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; background: var(--code); border: 1px solid #555; }
+  #legend i.own { border: 3px solid var(--own); } #legend i.below { border: 2px dashed var(--below); }
+  #legend i.only { border: 3px solid var(--only); } #legend i.moved { border: 3px solid var(--moved); } #legend i.ref { background: none; border: 0; border-top: 2px solid var(--ref); height: 0; }
+  main { flex: 1; display: flex; min-height: 0; }
+  .pane { flex: 1; min-width: 0; display: flex; flex-direction: column; border-right: 1px solid var(--line); }
+  .pane:last-child { border-right: 0; }
+  main.stacked { flex-direction: column; }
+  main.stacked .pane { border-right: 0; border-bottom: 1px solid var(--line); }
+  main.stacked .pane:last-child { border-bottom: 0; }
+  .pane h2 { margin: 0; padding: 6px 16px; font-size: 13px; font-weight: 600; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; }
+  .pane h2 span { font-weight: 400; color: var(--muted); }
+  .view { flex: 1; min-height: 0; position: relative; touch-action: none; cursor: grab; }
+  .view svg { position: absolute; inset: 0; width: 100%; height: 100%; user-select: none; }
+  .empty { padding: 24px 16px; color: var(--muted); }
+  .e { fill: none; stroke: var(--edge); stroke-width: 1; }
+  .e.r { stroke: var(--ref); opacity: .65; }
+  .norefs .e.r { display: none; }
+  .n rect { stroke: #555; stroke-width: 1; fill: var(--code); }
+  .n.ty rect { fill: var(--ty); } .n.yul rect { fill: var(--yul); } .n.fn rect { fill: var(--fn); }
+  .n text { font: 11px ui-monospace, monospace; fill: var(--ink); text-anchor: middle; pointer-events: none; }
+  .n.own rect { stroke: var(--own); stroke-width: 3; }
+  .n.below rect { stroke: var(--below); stroke-width: 2.5; stroke-dasharray: 5 3; }
+  .n.only rect { stroke: var(--only); stroke-width: 3; }
+  .n.moved rect { stroke: var(--moved); stroke-width: 3; }
+  .dim .n.same { opacity: .45; }
+  .n.collapsed rect { fill: var(--bg); stroke: var(--edge); stroke-dasharray: 3 3; }
+  .n.collapsed text { fill: var(--muted); }
+  .ghost { fill: none; stroke: var(--line); stroke-width: 1.5; stroke-dasharray: 2 3; }
+  .n.hl rect { stroke: var(--fg); stroke-width: 3.5; }
+  .error { color: var(--own); padding: 16px; }
+</style>
+<link rel="stylesheet" href="hashgraph.css?v=dde1da87ac">
+<link rel="stylesheet" href="ui.css?v=e28ae2eee0">
+<!-- hide-load-group: loading files needs the comparison module, which this site does not carry -->
+<style>#g-files { display: none !important; }</style>
+</head>
+<body>
+<header>
+  <span id="use"><label><input type="radio" name="use" id="use-compilers" checked> Two compilers, same program</label>
+    <label><input type="radio" name="use" id="use-edits"> Two versions of a program, same compiler</label></span>
+  <label>Program <select id="program"></select></label>
+  <label>Function <select id="pair"></select></label>
+  <label title="The aligned layered graphs show both versions of a function, compared. The hash graph shows the containment tree of a function with rows by hash height; for a pair, both versions are drawn from one union tree, so that nodes they share line up.">View
+    <select id="view"><option value="layered">aligned layered graphs (current)</option><option value="hash">hash graph</option></select></label>
+  <button id="fit">Fit</button>
+</header>
+<aside id="side">
+<div id="compare" class="bar" role="group" aria-label="What the comparison counts">
+  <span>Compare:</span>
+  <label id="names-label" title="The two compilers invent different names; leave off to ignore them"><input type="checkbox" id="f-names"> names</label>
+  <label title="Mark uses that refer to a different definition than their counterpart"><input type="checkbox" id="bindings"> bindings</label>
+  <label class="layered-only" title="Fold the parts that are the same on both sides into one box each; leave off to draw every node"><input type="checkbox" id="changes" checked> only what differs</label>
+</div>
+<div id="groups" class="bar">
+  <details id="g-facts">
+    <summary>Facts compared (advanced)</summary>
+    <div class="group">
+      <p>Nodes and links are always compared; these choose which facts of matched nodes count. Names matter on most pairs; the other three rarely change a result.</p>
+      <p id="facet-effect" hidden></p>
+      <label><input type="checkbox" id="f-structure" checked> structure</label>
+      <label><input type="checkbox" id="f-constants" checked> constants</label>
+      <label><input type="checkbox" id="f-types" checked> types</label>
+    </div>
+  </details>
+  <details id="g-layout">
+    <summary>Layout options</summary>
+    <div class="group">
+      <label class="layered-only"><input type="checkbox" id="align"> align the two graphs</label>
+      <label class="layered-only pairable"><input type="checkbox" id="stack" checked> stack the two graphs</label>
+      <label class="layered-only"><input type="checkbox" id="dim"> dim unchanged nodes</label>
+      <label><input type="checkbox" id="onlychanged"> only pairs that differ</label>
+      <label class="layered-only"><input type="checkbox" id="refs" checked> variable-use links</label>
+    </div>
+  </details>
+  <details id="g-files">
+    <summary>Load your own files</summary>
+    <div id="own-bar" class="group">
+      <span>Compare other Hull files, here in the browser:</span>
+      <label>left <input type="file" id="file-left"></label>
+      <label>right <input type="file" id="file-right"></label>
+      <button id="compare-files" disabled>Compare</button>
+      <label>or an example <select id="example"><option value="">choose</option>
+        <optgroup label="Haskell and Rust compilers">
+          <option value="app:haskell:rust">app</option><option value="tiamat:haskell:rust">tiamat</option><option value="array:haskell:rust">array</option>
+        </optgroup>
+        <optgroup label="One compiler, before and after a fix">
+          <option value="loop-shadow:before:after">loop-shadow</option><option value="nested-closure:before:after">nested-closure</option><option value="runtime-read:before:after">runtime-read</option><option value="swap-binding:before:after">swap-binding (only the bindings differ)</option>
+        </optgroup></select></label>
+      <label title="Pair functions whose names do not pair them by how many of their nodes match, when the names agree up to what the compiler adds"><input type="checkbox" id="similar" checked> also pair by similarity</label>
+      <span id="hand" hidden>
+        Pair by hand:
+        <select id="hand-left" aria-label="function on the left"></select>
+        with
+        <select id="hand-right" aria-label="function on the right"></select>
+        <button id="hand-go">Compare these two</button>
+      </span>
+    </div>
+  </details>
+</div>
+</aside>
+<div id="graphs">
+<div id="summary"></div>
+<div id="legend" class="layered-only">
+  <span><i class="own"></i>own facts or links differ</span>
+  <span><i class="below"></i>something below differs</span>
+  <span><i class="only"></i>only on this side</span>
+  <span><i class="moved"></i>moved: reordered, or under another parent</span>
+  <span><i class="ref"></i>variable use to definition</span>
+  <span>Nodes are paired by content: identical subtrees first, then by their place among the nodes left over; an inserted statement is shown as an insertion and does not shift the rest. Only the chosen facets are compared.</span>
+</div>
+<main id="main" class="stacked">
+  <section class="pane"><h2 id="lhead"><b id="lname">Haskell compiler</b> <span id="lt"></span></h2><div class="view" id="left"></div></section>
+  <section class="pane"><h2 id="rhead"><b id="rname">Rust compiler</b> <span id="rt"></span></h2><div class="view" id="right"></div></section>
+</main>
+</div>
+<script type="module" src="viewer.js?v=d96b70d07f"></script>
+<script type="module" src="ui.js?v=bd49810540"></script>
+</body>
+</html>
