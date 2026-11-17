@@ -13,7 +13,7 @@
 //                 before `fn`), never written for a chosen function
 //   facets        the ticked facts as letters: s structure, n names, c constants, t types (default sct)
 //   diff align stack refs similar      on by default; written as `x=0` when off
-//   dim onlychanged bindings           off by default; written as `x=1` when on
+//   dim onlychanged bindings source    off by default; written as `x=1` when on (`source`: the panel with the Solcore source is open)
 //   view          the hash graph view's own parameters (view, yaw, tilt, spread, arcs, uniform, paths,
 //                 colour) as [name, value] pairs, in order; hashgraph.js reads and writes their meaning
 //   unknown       every other parameter as [name, value] pairs, in order, kept so that a rewrite of the
@@ -24,7 +24,7 @@
 export const FACETS = [['s', 1], ['n', 2], ['c', 4], ['t', 8]];
 export const VIEW_KEYS = ['view', 'yaw', 'tilt', 'spread', 'arcs', 'uniform', 'paths', 'colour'];
 // The on/off settings with their defaults, in the order they are written.
-const FLAGS = [['diff', true], ['align', true], ['stack', true], ['dim', false], ['onlychanged', false], ['refs', true], ['similar', true], ['bindings', false]];
+const FLAGS = [['diff', true], ['align', true], ['stack', true], ['dim', false], ['onlychanged', false], ['refs', true], ['similar', true], ['bindings', false], ['source', false]];
 const TEXTS = ['program', 'example', 'fn'];
 
 export const DEFAULTS = Object.freeze({

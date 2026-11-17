@@ -2,7 +2,7 @@ import init, { render_graph, render_pair, slot_layout, slot_union_layout } from 
 import { initHashView, setPaneName } from './hashgraph.js?v=9159ac74de';
 import * as hashPair from './hashgraph-pair.js?v=5127849db9';
 import { withBindings } from './bindings.js?v=3eafae25c0';
-import { parse as parseAddress, serialise as serialiseAddress, maskOfFacets, facetsOfMask } from './addressState.js?v=635d8d12f3';
+import { parse as parseAddress, serialise as serialiseAddress, maskOfFacets, facetsOfMask } from './addressState.js?v=bab916b064';
 
 const $ = (selector) => document.querySelector(selector);
 // What the two sides of a stored program are: the same program from two compilers, or one program before and after
@@ -356,6 +356,7 @@ async function recompute(selection) {
     state.program = program;
     state.live = true;
     setNamesTitle();
+    await syncSource();
     const label = `your files: ${left.name} and ${right.name}`;
     if (!$('#program option[value="__files__"]')) $('#program').insertAdjacentHTML('afterbegin', '<option value="__files__"></option>');
     $('#program option[value="__files__"]').textContent = label;
@@ -488,6 +489,33 @@ async function loadProgram(name, selection) {
   }
   state.autoPairs = state.program.pairs.length;
   fillEntries(selection);
+  await syncSource();
+}
+
+// The Solcore source of a stored program of the two compilers, as given to both (sources/NAME.sol), in the panel below the graphs. The edited
+// examples are Hull only and the reader's own files have no source, so the panel is left out for them.
+const sourceCache = new Map();
+async function syncSource() {
+  const panel = $('#g-source');
+  const name = !state.live && state.kind === 'compilers' ? state.stored : null;
+  panel.dataset.name = name || '';
+  panel.hidden = name === null;
+  if (name === null) return;
+  if (!sourceCache.has(name)) {
+    const response = await fetch(`sources/${encodeURIComponent(name)}.sol`);
+    sourceCache.set(name, response.ok ? await response.text() : null);
+  }
+  if (panel.dataset.name !== name) return;   // another program was chosen while this one was loading
+  const text = sourceCache.get(name);
+  if (text === null) { panel.hidden = true; return; }
+  $('#source-name').textContent = `${name}.sol`;
+  $('#source-text').replaceChildren(...text.replace(/\n$/, '').split('\n').map((line, i) => {
+    const row = document.createElement('span');
+    row.className = 'ln';
+    row.dataset.n = String(i + 1);
+    row.textContent = `${line}\n`;
+    return row;
+  }));
 }
 
 // ---------------------------------------------------------------------------------------------------------
@@ -498,7 +526,10 @@ async function loadProgram(name, selection) {
 // `'replace'` changes the current one (a toggled checkbox, a moved slider). Neither fires a hashchange.
 
 // The checkboxes of the address, by setting name.
-const SWITCHES = [['diff', '#changes'], ['align', '#align'], ['stack', '#stack'], ['dim', '#dim'], ['onlychanged', '#onlychanged'], ['refs', '#refs'], ['similar', '#similar'], ['bindings', '#bindings']];
+const SWITCHES = [['diff', '#changes'], ['align', '#align'], ['stack', '#stack'], ['dim', '#dim'], ['onlychanged', '#onlychanged'], ['refs', '#refs'], ['similar', '#similar'], ['bindings', '#bindings'], ['source', '#g-source']];
+// A switch is a checkbox, or the panel with the Solcore source (a <details>: open or closed).
+const switchOn = (id) => { const el = $(id); return el.localName === 'details' ? el.open : el.checked; };
+const setSwitch = (id, on) => { const el = $(id); if (el.localName === 'details') el.open = on; else el.checked = on; };
 let applied = null;   // the address (location.hash) last read or written
 let queue = Promise.resolve();
 
@@ -511,7 +542,7 @@ function setLayoutClasses() {
 
 function currentSettings() {
   const s = { facets: facetsOfMask(mask()), unknown: state.unknown };
-  for (const [name, id] of SWITCHES) s[name] = $(id).checked;
+  for (const [name, id] of SWITCHES) s[name] = switchOn(id);
   const view = new URLSearchParams();
   hashView.addParams(view);
   s.view = [...view];
@@ -539,7 +570,7 @@ async function applyAddress() {
   state.unknown = s.unknown;
   const facets = maskOfFacets(s.facets);
   for (const [name, bit] of FACETS) $(`#f-${name}`).checked = (facets & bit) !== 0;
-  for (const [name, id] of SWITCHES) $(id).checked = s[name];
+  for (const [name, id] of SWITCHES) setSwitch(id, s[name]);
   setLayoutClasses();
   hashView.readParams(new URLSearchParams(s.view));
   hashView.requestPin(s.sel);   // taken when the function is drawn; a link without `sel` unpins
@@ -617,6 +648,7 @@ async function main() {
       writeAddress('replace');
     });
   }
+  $('#g-source').addEventListener('toggle', () => writeAddress('replace'));
   $('#onlychanged').addEventListener('change', () => { fillEntries(currentSelection()); writeAddress('replace'); });
   // The counts and the "only pairs that differ" list depend on the switch; nothing is compared again.
   $('#bindings').addEventListener('change', () => { fillEntries(currentSelection()); writeAddress('replace'); });

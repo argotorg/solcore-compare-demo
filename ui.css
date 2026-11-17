@@ -127,3 +127,11 @@ a, a:visited { color: var(--link); }
 /* pane title rows: the label never shrinks; the long function name takes the rest and is cut with an ellipsis */
 .pane h2 b { flex: 0 0 auto; max-width: none; }
 .pane h2 span { flex: 1 1 0; text-align: right; }
+
+/* The Solcore source of a stored program of the two compilers, below the graphs (viewer.js; hidden for the edited examples and for the reader's own files). */
+#g-source { padding: 4px 16px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+#g-source pre { margin: 4px 0 8px; overflow: auto; font: 12px/1.5 ui-monospace, monospace; color: var(--fg); }
+#g-source .ln::before { content: attr(data-n); display: inline-block; width: 3ch; margin-right: 1.5ch; text-align: right; color: var(--muted); user-select: none; }
+/* With the source open the graphs keep a usable height and the column scrolls (the source is under them). */
+body:has(#g-source[open]) #main { min-height: 420px; }
+#g-source pre { max-height: 50vh; }
